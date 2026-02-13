@@ -1,0 +1,17 @@
+# Log files
+*.log
+*.log.*
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# PID files
+*.pid
+
+# CSV data files
+*.csv
+
+# Reports
+reports/
