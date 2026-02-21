@@ -3,11 +3,6 @@ import os
 import time
 
 
-psutil.cpu_count()
-
-
-
-
 def get_top_processes(n, sort_by):
     # print('do you want to sort by CPU or memory')
     # user_input=input("cpu or mem: ")
