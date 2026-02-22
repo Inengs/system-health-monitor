@@ -66,6 +66,10 @@ def monitor(n=10, interval=3, sort_by='cpu'):
         display(processes, interval)
         time.sleep(interval)
 
+def log_alert(process, reason):
+    pass
+
+
 if __name__ == "__main__":
 
     print('do you want to sort by CPU or memory')
