@@ -15,6 +15,8 @@ logging.basicConfig(
 CPU_THRESHOLD: float = 80.0
 MEM_THRESHOLD: float = 80.0
 
+# Processes that shouldnt be killed
+KILL_WHITELIST = {"kernel", "systemd", "init", "sshd", "python", "python3"}
 def get_top_processes(n, sort_by):
     # print('do you want to sort by CPU or memory')
     # user_input=input("cpu or mem: ")
@@ -37,6 +39,30 @@ def get_top_processes(n, sort_by):
 
     top_n_processes = sorted_processes[:n]
     return top_n_processes
+
+def kill_processes(process):
+    """Attempt to gracefully terminate, then force-kill a runaway process."""
+    pid = process['pid']
+    name = process['name']
+
+    if name.lower() in KILL_WHITELIST:
+        msg = f"SKIPPED kill for whitelisted process: {name} (PID {pid})"
+        logging.warning(msg)
+        return msg
+
+    try:
+        proc = psutil.Process(pid)
+        proc.terminate()          # SIGTERM — asks nicely first
+        proc.wait(timeout=3)      # give it 3 seconds to exit
+        msg = f"KILLED (SIGTERM) PID {pid} ({name})"
+    except psutil.TimeoutExpired:
+        proc.kill()               # SIGKILL — force kill if it didn't respond
+        msg = f"KILLED (SIGKILL) PID {pid} ({name})"
+    except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+        msg = f"Could not kill PID {pid} ({name}): {e}"
+
+    logging.warning(msg)
+    return msg
 
 def log_alert(process, reason) -> str:
     msg: str = (f"ALERT | PID: {process['pid']} | Name: {process['name']} | "
