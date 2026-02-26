@@ -1,7 +1,19 @@
 import psutil
 import os
 import time
+import logging
+from datetime import datetime
 
+#Configure logging
+logging.basicConfig(
+    filename='process_alerts.log',
+    level=logging.WARNING,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+#Declare threshold variables
+CPU_THRESHOLD: float = 80.0
+MEM_THRESHOLD: float = 80.0
 
 def get_top_processes(n, sort_by):
     # print('do you want to sort by CPU or memory')
@@ -26,8 +38,23 @@ def get_top_processes(n, sort_by):
     top_n_processes = sorted_processes[:n]
     return top_n_processes
 
+def log_alert(process, reason) -> str:
+    msg: str = (f"ALERT | PID: {process['pid']} | Name: {process['name']} | "
+           f"CPU: {process['cpu_percent']:.1f}% | MEM: {process['memory_percent']:.1f}% | "
+           f"Reason: {reason}")
+    logging.warning(msg)
+    return msg
 
-def display(processes, interval):
+def check_thresholds(processes) -> list:
+    alerts: list = []
+    for p in processes:
+        if p['cpu_percent'] and p['cpu_percent'] > CPU_THRESHOLD:
+            alerts.append(log_alert(p, f"CPU exceeded {CPU_THRESHOLD}%"))
+        if p['memory_percent'] and p['memory_percent'] > MEM_THRESHOLD:
+            alerts.append(log_alert(p, f"MEM exceeded {MEM_THRESHOLD}%"))
+    return alerts
+
+def display(processes, interval, alerts):
     os.system("clear") # run clear command in the terminal
 
     #system-wide stats
@@ -36,6 +63,11 @@ def display(processes, interval):
            f" CPU Count: {psutil.cpu_count()}% "
            f"Memory: {psutil.virtual_memory().percent}%   "
            f"Swap: {psutil.swap_memory().percent}%")
+    
+    if alerts:
+        print(f"\n⚠️  {len(alerts)} ALERT(S) — see process_alerts.log")
+        for a in alerts[-3:]:  # show last 3 alerts inline
+            print(f"   {a}")
     
     print(f"{'='*70}")
     print(f"{'PID':>7}  {'NAME':<25} {'CPU%':>6}  {'MEM%':>6}  {'RSS MB':>8}  {'STATUS':<10}")
@@ -48,31 +80,29 @@ def display(processes, interval):
         else:
             rss_mb = 0                          # if no memory info, default to 0
 
+        flag = " ⚠️" if (process['cpu_percent'] or 0) > CPU_THRESHOLD or (process['memory_percent'] or 0) > MEM_THRESHOLD else "" # show flag when it exceeds the threshold
+
         print(f"{process['pid']:>7}  {process['name'][:25]:<25} {process['cpu_percent']:>6.1f}  "
-            f"{process['memory_percent']:>6.1f}  {rss_mb:>8.1f}  {process['status']:<10}")
+            f"{process['memory_percent']:>6.1f}  {rss_mb:>8.1f}  {process['status']:<10}{flag}")
         
 def monitor(n=10, interval=3, sort_by='cpu'):
     print("Starting monitor... (Ctrl+C to stop)")
 
     # First call to cpu_percent returns 0.0, warm it up
-    for process in psutil.process_iter(['cpu_percent']):
+    for _ in psutil.process_iter(['cpu_percent']):
         pass
     time.sleep(interval)
 
-
-
     while True:
         processes = get_top_processes(n=n, sort_by=sort_by)
-        display(processes, interval)
+        alerts = check_thresholds(processes)
+        display(processes, interval, alerts)
         time.sleep(interval)
 
-def log_alert(process, reason):
-    pass
 
 
 if __name__ == "__main__":
-
     print('do you want to sort by CPU or memory')
-    user_input=input("cpu or mem: ")
+    user_input=input("cpu or mem: ").strip().lower()
 
     monitor(n=10, interval=3, sort_by=user_input)  # Change sort_by to "memory" if needed
