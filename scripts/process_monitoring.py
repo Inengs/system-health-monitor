@@ -17,6 +17,7 @@ MEM_THRESHOLD: float = 80.0
 
 # Processes that shouldnt be killed
 KILL_WHITELIST = {"kernel", "systemd", "init", "sshd", "python", "python3"}
+
 def get_top_processes(n, sort_by):
     # print('do you want to sort by CPU or memory')
     # user_input=input("cpu or mem: ")
