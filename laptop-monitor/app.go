@@ -14,12 +14,13 @@ import (
 type App struct {
 	ctx     context.Context
 	monitor *Monitor
+	suggester *Suggester
 }
 
 // NewApp returns an App with an idle Monitor — call startup to begin
 // polling once the Wails runtime context is available.
 func NewApp() *App {
-	return &App{monitor: NewMonitor()}
+	return &App{monitor: NewMonitor(), suggester: NewSuggester()}
 }
 
 // startup runs once, after Wails' runtime is ready. Stores the context
@@ -55,4 +56,21 @@ func (a *App) RequestClose(pid int32) string {
 		return "Couldn't close it — you may need administrator permission."
 	}
 	return "Closed."
+}
+
+
+// GetConfig returns current settings for the settings panel to display.
+func (a *App) GetConfig() Config {
+	cfg, _ := LoadConfig()
+	return cfg
+}
+
+// SaveConfig persists settings and applies the new key immediately —
+// no restart needed. Returns "" on success, an error message otherwise.
+func (a *App) SaveConfig(cfg Config) string {
+	if err := cfg.Save(); err != nil {
+		return "Couldn't save settings: " + err.Error()
+	}
+	a.suggester.SetAPIKey(cfg.GeminiAPIKey)
+	return ""
 }
