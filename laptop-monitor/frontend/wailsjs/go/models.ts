@@ -18,6 +18,18 @@ export namespace main {
 	        this.time = source["time"];
 	    }
 	}
+	export class Config {
+	    geminiApiKey: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Config(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.geminiApiKey = source["geminiApiKey"];
+	    }
+	}
 	export class ProcInfo {
 	    pid: number;
 	    name: string;

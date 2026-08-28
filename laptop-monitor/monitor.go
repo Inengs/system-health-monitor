@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -75,6 +76,8 @@ type Snapshot struct {
 type Monitor struct {
 	mu     sync.RWMutex
 	latest Snapshot
+	seenAlerts map[string]bool // fingerprint of currently-active alerts
+	onNewAlert func(Alert)
 }
 
 // NewMonitor returns an idle Monitor — call Start to begin polling.
@@ -82,17 +85,44 @@ func NewMonitor() *Monitor {
 	return &Monitor{}
 }
 
-// Start begins polling on its own goroutine at the given interval.
 func (m *Monitor) Start(interval time.Duration) {
 	go func() {
 		for {
 			snap := m.collect()
+
 			m.mu.Lock()
 			m.latest = snap
+			fresh, next := m.diffAlerts(snap.Alerts)
+			m.seenAlerts = next
+			cb := m.onNewAlert
 			m.mu.Unlock()
+
+			if cb != nil {
+				for _, a := range fresh {
+					cb(a)
+				}
+			}
+
 			time.Sleep(interval)
 		}
 	}()
+}
+
+// diffAlerts returns only the alerts not present in the previous tick's
+// seenAlerts, plus the new full set for next tick's comparison. Keyed by
+// PID+reason, so a process that clears and later re-triggers is treated
+// as fresh again rather than staying permanently silenced.
+func (m *Monitor) diffAlerts(alerts []Alert) ([]Alert, map[string]bool) {
+	next := make(map[string]bool, len(alerts))
+	var fresh []Alert
+	for _, a := range alerts {
+		key := fmt.Sprintf("%d|%s", a.PID, a.Reason)
+		next[key] = true
+		if !m.seenAlerts[key] {
+			fresh = append(fresh, a)
+		}
+	}
+	return fresh, next
 }
 
 // Snapshot returns the most recently collected reading.
@@ -189,4 +219,13 @@ func lowerName(s string) string {
 		out[i] = c
 	}
 	return string(out)
+}
+
+// SetOnNewAlert registers a callback fired once per alert the first tick
+// it appears — not on every poll while it's still active. Call before
+// Start.
+func (m *Monitor) SetOnNewAlert(fn func(Alert)) {
+	m.mu.Lock()
+	m.onNewAlert = fn
+	m.mu.Unlock()
 }

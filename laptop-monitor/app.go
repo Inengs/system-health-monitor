@@ -28,6 +28,7 @@ func NewApp() *App {
 // poller.
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.monitor.SetOnNewAlert(NewNotifier().Notify)
 	a.monitor.Start(3 * time.Second)
 }
 

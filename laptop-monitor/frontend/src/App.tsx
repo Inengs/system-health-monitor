@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { GetSnapshot, RequestClose } from "../wailsjs/go/main/App";
+import Settings from "./Settings";
 import "./App.css";
 
 type ProcInfo = {
@@ -28,6 +29,7 @@ export default function App() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [confirming, setConfirming] = useState<ProcInfo | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const poll = async () => setSnapshot(await GetSnapshot());
@@ -70,6 +72,10 @@ export default function App() {
         ))}
       </ul>
 
+      <div className="app-header">
+        <button onClick={() => setShowSettings(true)}>⚙ Settings</button>
+      </div>
+
       {confirming && (
         <div className="modal">
           <p>Close {confirming.friendly}? Unsaved work in it will be lost.</p>
@@ -77,6 +83,9 @@ export default function App() {
           <button onClick={() => setConfirming(null)}>Cancel</button>
         </div>
       )}
+
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
+

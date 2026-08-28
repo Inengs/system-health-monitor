@@ -1,59 +1,289 @@
-#app {
-    height: 100vh;
-    text-align: center;
+:root {
+  --bg: #0f1729;
+  --bg-elevated: #1a2540;
+  --text: #e8ecf4;
+  --text-dim: #9aa5bd;
+  --accent: #4f8cff;
+  --danger: #ff5f5f;
+  --warning: #ffb020;
+  --border: #2a3552;
 }
 
-#logo {
-    display: block;
-    width: 50%;
-    height: 50%;
-    margin: auto;
-    padding: 10% 0 0;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    background-origin: content-box;
+* {
+  box-sizing: border-box;
 }
 
-.result {
-    height: 20px;
-    line-height: 20px;
-    margin: 1.5rem auto;
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
-.input-box .btn {
-    width: 60px;
-    height: 30px;
-    line-height: 30px;
-    border-radius: 3px;
-    border: none;
-    margin: 0 0 0 20px;
-    padding: 0 8px;
-    cursor: pointer;
+#App {
+  min-height: 100vh;
+  padding: 16px 20px 40px;
+  position: relative;
 }
 
-.input-box .btn:hover {
-    background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%);
-    color: #333333;
+/* ── Header ─────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
 }
 
-.input-box .input {
-    border: none;
-    border-radius: 3px;
-    outline: none;
-    height: 30px;
-    line-height: 30px;
-    padding: 0 10px;
-    background-color: rgba(240, 240, 240, 1);
-    -webkit-font-smoothing: antialiased;
+.app-header button {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
 }
 
-.input-box .input:hover {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
+.app-header button:hover {
+  border-color: var(--accent);
 }
 
-.input-box .input:focus {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
+/* ── Banner ─────────────────────────────────────────── */
+
+.banner {
+  background: rgba(255, 95, 95, 0.12);
+  border: 1px solid rgba(255, 95, 95, 0.4);
+  color: #ffb3b3;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.status {
+  background: rgba(79, 140, 255, 0.12);
+  border: 1px solid rgba(79, 140, 255, 0.4);
+  color: #bcd4ff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+
+/* ── Process list ───────────────────────────────────── */
+
+.proc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.proc-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.proc-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proc-stat {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.proc-list button {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.proc-list button:hover {
+  background: rgba(255, 95, 95, 0.12);
+}
+
+/* ── Modal / overlay (shared by .modal and .settings) ──── */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal p {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 340px;
+  text-align: center;
+  margin: 0 0 12px;
+}
+
+.modal button {
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  margin: 0 6px;
+}
+
+.modal button:first-of-type {
+  background: var(--danger);
+  border: 1px solid var(--danger);
+  color: #fff;
+}
+
+.modal button:last-of-type {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* ── Settings panel ─────────────────────────────────── */
+
+.settings {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.settings > * {
+  width: 100%;
+  max-width: 380px;
+}
+
+.settings-header,
+.settings > label,
+.settings > .settings-hint,
+.settings > input,
+.settings-actions {
+  background: var(--bg-elevated);
+  max-width: 380px;
+  width: 100%;
+}
+
+/* Wrap the panel content in a card look via a pseudo-container */
+.settings {
+  flex-direction: column;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  padding: 14px 16px;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.settings-header button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.settings > label {
+  display: block;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 12px 16px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.optional {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.settings-hint {
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 6px 16px 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.settings-hint a {
+  color: var(--accent);
+}
+
+.settings input {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  margin: 10px 16px;
+  width: calc(100% - 32px);
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 12px 16px 16px;
+}
+
+.settings-actions button {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.settings-status {
+  font-size: 12px;
+  color: var(--text-dim);
 }
