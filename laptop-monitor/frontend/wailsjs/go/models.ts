@@ -18,18 +18,6 @@ export namespace main {
 	        this.time = source["time"];
 	    }
 	}
-	export class Config {
-	    geminiApiKey: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new Config(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.geminiApiKey = source["geminiApiKey"];
-	    }
-	}
 	export class ProcInfo {
 	    pid: number;
 	    name: string;
@@ -52,13 +40,14 @@ export namespace main {
 	        this.safeToClose = source["safeToClose"];
 	    }
 	}
-	export class Snapshot {
+	export class AppSnapshot {
 	    topByCpu: ProcInfo[];
 	    topByMem: ProcInfo[];
 	    alerts: Alert[];
+	    suggestion?: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new Snapshot(source);
+	        return new AppSnapshot(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -66,6 +55,7 @@ export namespace main {
 	        this.topByCpu = this.convertValues(source["topByCpu"], ProcInfo);
 	        this.topByMem = this.convertValues(source["topByMem"], ProcInfo);
 	        this.alerts = this.convertValues(source["alerts"], Alert);
+	        this.suggestion = source["suggestion"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -85,6 +75,18 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class Config {
+	    geminiApiKey: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Config(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.geminiApiKey = source["geminiApiKey"];
+	    }
 	}
 
 }

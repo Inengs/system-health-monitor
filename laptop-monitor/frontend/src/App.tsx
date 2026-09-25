@@ -23,6 +23,7 @@ type Snapshot = {
   topByCpu: ProcInfo[];
   topByMem: ProcInfo[];
   alerts: Alert[];
+  suggestion?: string;
 };
 
 export default function App() {
@@ -59,6 +60,10 @@ export default function App() {
       )}
 
       {status && <div className="status">{status}</div>}
+
+      {snapshot.suggestion && (
+        <div className="status">{snapshot.suggestion}</div>
+      )}
 
       <ul className="proc-list">
         {snapshot.topByCpu.map((p) => (

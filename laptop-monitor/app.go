@@ -6,15 +6,19 @@ package main
 import (
 	"context"
 	"time"
+	"sync"
 
 	"github.com/shirou/gopsutil/v3/process"
 )
 
 // App is the single binding surface between Go and the frontend.
 type App struct {
-	ctx     context.Context
-	monitor *Monitor
+	ctx       context.Context
+	monitor   *Monitor
 	suggester *Suggester
+
+	suggestionMu sync.RWMutex
+	suggestion   string
 }
 
 // NewApp returns an App with an idle Monitor — call startup to begin
@@ -30,12 +34,39 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.monitor.SetOnNewAlert(NewNotifier().Notify)
 	a.monitor.Start(3 * time.Second)
+	a.startSuggestionLoop()
 }
 
-// GetSnapshot returns the latest process/CPU/memory reading. Callable
-// from the frontend as window.go.main.App.GetSnapshot().
-func (a *App) GetSnapshot() Snapshot {
-	return a.monitor.Snapshot()
+
+// startSuggestionLoop refreshes the cached AI suggestion on its own timer,
+// decoupled from GetSnapshot's polling path so a slow Gemini call never
+// delays process-list updates. Suggester already no-ops cheaply when no
+// key is set or nothing's changed, so a 5s tick is fine.
+func (a *App) startSuggestionLoop() {
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			text := a.suggester.Suggest(a.monitor.Snapshot())
+			a.suggestionMu.Lock()
+			a.suggestion = text
+			a.suggestionMu.Unlock()
+		}
+	}()
+}
+
+// AppSnapshot adds the cached AI suggestion to the frontend payload.
+// Kept here, not in monitor.go, so Monitor stays free of any AI dependency.
+type AppSnapshot struct {
+	Snapshot
+	Suggestion string `json:"suggestion,omitempty"`
+}
+
+func (a *App) GetSnapshot() AppSnapshot {
+	a.suggestionMu.RLock()
+	suggestion := a.suggestion
+	a.suggestionMu.RUnlock()
+	return AppSnapshot{Snapshot: a.monitor.Snapshot(), Suggestion: suggestion}
 }
 
 // RequestClose attempts to terminate the process with the given PID.

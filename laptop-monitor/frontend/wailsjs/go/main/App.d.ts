@@ -4,7 +4,7 @@ import {main} from '../models';
 
 export function GetConfig():Promise<main.Config>;
 
-export function GetSnapshot():Promise<main.Snapshot>;
+export function GetSnapshot():Promise<main.AppSnapshot>;
 
 export function RequestClose(arg1:number):Promise<string>;
 

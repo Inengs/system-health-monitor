@@ -31,8 +31,9 @@ type Suggester struct {
 	lastFetched time.Time
 }
 
-// NewSuggester reads GEMINI_API_KEY from the environment. Leave it
-// unset during dev — Suggest() just returns "" until it's configured.
+// NewSuggester loads the Gemini API key from the persisted config file
+// (set via the Settings panel). Suggest() returns "" until a key is
+// configured — the rule-based banner works either way.
 func NewSuggester() *Suggester {
 	cfg, _ := LoadConfig()
 	return &Suggester{
